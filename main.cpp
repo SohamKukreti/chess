@@ -33,6 +33,9 @@ class ChessBoard{
                 board[6][i] = 'p';
             }
         };
+
+        void executeMove(string move);
+
         void printBoard(){
             cout << "   a   b   c   d   e   f   g   h" << endl;
             cout << " ---------------------------------" << endl;
@@ -52,8 +55,10 @@ class ChessBoard{
 
 class Game{
     public:
+        string turn;
         Game(){
             ChessBoard board;
+            turn = "white";
         }
         ChessBoard board;
 
@@ -64,20 +69,116 @@ class Game{
             return make_pair(row,col);
         }
 
+        bool isValidMove(string move){
+            if(move.length() != 4){
+                return false;
+            }
+            pair<int,int> start = getCoordinates(move.substr(0,2));
+            pair<int,int> end = getCoordinates(move.substr(2,2));
+            if(start.first < 0 || start.first > 7 || start.second < 0 || start.second > 7){
+                return false;
+            }
+            if(end.first < 0 || end.first > 7 || end.second < 0 || end.second > 7){
+                return false;
+            }
+            if(board.board[start.first][start.second] == ' '){
+                return false;
+            }
+            char piece = board.board[start.first][start.second];
+
+            if(piece == 'P' and turn == "white"){
+                if(start.first == 1){
+                    if(end.first == 3 && start.second == end.second){
+                        return true;
+                    }
+                }
+                if(end.first == start.first + 1 && start.second == end.second){
+                    return true;
+                }
+            }
+
+            if(piece == 'p' && turn == "black"){
+                if(start.first == 6){
+                    if(end.first == 4 && start.second == end.second){
+                        return true;
+                    }
+                }
+                if(end.first == start.first - 1 && start.second == end.second){
+                    return true;
+                }
+            }
+
+            if(piece == 'R' && turn == "white" || piece == 'r' && turn == "black"){
+                if(start.first == end.first || start.second == end.second){
+                    return true;
+                }
+            }
+
+            if(piece == 'N' && turn == "white" || piece == 'n' && turn == "black"){
+                if((abs(start.first - end.first) == 2 && abs(start.second - end.second) == 1) || (abs(start.first - end.first) == 1 && abs(start.second - end.second) == 2)){
+                    return true;
+                }
+            }
+
+            if(piece == 'B' && turn == "white" || piece == 'b' && turn == "black"){
+                if(abs(start.first - end.first) == abs(start.second - end.second)){
+                    return true;
+                }
+            }
+
+            if(piece == 'Q' && turn == "white" || piece == 'q' && turn == "black"){
+                if(start.first == end.first || start.second == end.second){
+                    return true;
+                }
+                if(abs(start.first - end.first) == abs(start.second - end.second)){
+                    return true;
+                }
+            }
+
+            if(piece == 'K' && turn == "white" || piece == 'k' && turn == "black"){
+                if(abs(start.first - end.first) <= 1 && abs(start.second - end.second) <= 1){
+                    return true;
+                }
+            }
+
+            return false;
+
+        }
+
         void makeMove(string move){
+            if(isValidMove(move)){
+                executeMove(move);
+                if(turn == "white"){
+                    turn = "black";
+                }
+                else{
+                    turn = "white";
+                }
+            }
+            else{
+                cout << "Invalid move" << endl;
+            }
+        }
+
+        void executeMove(string move){
             pair <int,int> start = getCoordinates(move.substr(0,2));
             pair <int,int> end = getCoordinates(move.substr(2,2));
             cout << "Start: " << start.first << " " << start.second << endl;
             cout << "End: " << end.first << " " << end.second << endl;
             board.board[end.first][end.second] = board.board[start.first][start.second];
             board.board[start.first][start.second] = ' ';
-            }
+            cout << "Move executed" << endl;
+        }
 };
 
 int main(){
     Game game;
+    cout << endl << "Move format: original position to new position (e.g. a2a4)" << endl << endl;
+    cout << "Enter 'exit' to exit the game" << endl << endl;
+    cout << "Uppercase letters represent white pieces and lowercase letters represent black pieces" << endl << endl;
     while(true){
         game.board.printBoard();
+        cout << "Turn: " << game.turn << endl;
         cout << "Enter a move: ";
         string move;
         cin >> move;
