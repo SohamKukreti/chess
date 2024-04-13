@@ -58,6 +58,8 @@ class Game{
         string turn;
         vector <char> whiteCapturedPieces;
         vector <char> blackCapturedPieces;
+        vector <char> whitePieces = {'R','N','B','Q','K','P'};
+        vector <char> blackPieces = {'r','n','b','q','k','p'};
         Game(){
             ChessBoard board;
             turn = "white";
@@ -71,24 +73,8 @@ class Game{
             return make_pair(row,col);
         }
 
-        bool isValidMove(string move){
-            if(move.length() != 4){
-                return false;
-            }
-            pair<int,int> start = getCoordinates(move.substr(0,2));
-            pair<int,int> end = getCoordinates(move.substr(2,2));
-            if(start.first < 0 || start.first > 7 || start.second < 0 || start.second > 7){
-                return false;
-            }
-            if(end.first < 0 || end.first > 7 || end.second < 0 || end.second > 7){
-                return false;
-            }
-            if(board.board[start.first][start.second] == ' '){
-                return false;
-            }
-            char piece = board.board[start.first][start.second];
-
-            if(piece == 'P' and turn == "white"){
+        bool checkPawn(pair<int,int> start, pair<int,int> end, char piece){
+            if(piece == 'P'){
                 if(start.first == 1){
                     if(end.first == 3 && start.second == end.second){
                         return true;
@@ -107,7 +93,7 @@ class Game{
                 }
             }
 
-            if(piece == 'p' && turn == "black"){
+            if(piece == 'p'){
                 if(start.first == 6){
                     if(end.first == 4 && start.second == end.second){
                         return true;
@@ -125,35 +111,211 @@ class Game{
                     }
                 }
             }
+            return false;
+        }
 
-            if(piece == 'R' && turn == "white" || piece == 'r' && turn == "black"){
-                if(start.first == end.first || start.second == end.second){
-                    return true;
+        bool checkRook(pair<int,int> start, pair<int,int> end, char piece){
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
+                }
+            }
+            if(start.first == end.first || start.second == end.second){
+                if(start.first == end.first){
+                    int minCol = min(start.second,end.second);
+                    int maxCol = max(start.second,end.second);
+                    for(int i = minCol + 1; i < maxCol; i++){
+                        if(board.board[start.first][i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                else{
+                    int minRow = min(start.first,end.first);
+                    int maxRow = max(start.first,end.first);
+                    for(int i = minRow + 1; i < maxRow; i++){
+                        if(board.board[i][start.second] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool checkKnight(pair<int,int> start, pair<int,int> end, char piece){
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
                 }
             }
 
-            if(piece == 'N' && turn == "white" || piece == 'n' && turn == "black"){
-                if((abs(start.first - end.first) == 2 && abs(start.second - end.second) == 1) || (abs(start.first - end.first) == 1 && abs(start.second - end.second) == 2)){
+            if((abs(start.first - end.first) == 2 && abs(start.second - end.second) == 1) || (abs(start.first - end.first) == 1 && abs(start.second - end.second) == 2)){
                     return true;
+                }
+            return false;
+        }
+
+        bool checkBishop(pair<int,int> start, pair<int,int> end, char piece){
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
                 }
             }
 
-            if(piece == 'B' && turn == "white" || piece == 'b' && turn == "black"){
-                if(abs(start.first - end.first) == abs(start.second - end.second)){
-                    return true;
+            if(abs(start.first - end.first) == abs(start.second - end.second)){
+                if(start.first < end.first && start.second < end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first + i][start.second + i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                if(start.first < end.first && start.second > end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first + i][start.second - i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                if(start.first > end.first && start.second < end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first - i][start.second + i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                if(start.first > end.first && start.second > end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first - i][start.second - i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool checkQueen(pair<int,int> start, pair<int,int> end, char piece){
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
                 }
             }
+            
+            else if(start.first == end.first || start.second == end.second){
+                if(start.first == end.first){
+                    int minCol = min(start.second,end.second);
+                    int maxCol = max(start.second,end.second);
+                    for(int i = minCol + 1; i < maxCol; i++){
+                        if(board.board[start.first][i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                else{
+                    int minRow = min(start.first,end.first);
+                    int maxRow = max(start.first,end.first);
+                    for(int i = minRow + 1; i < maxRow; i++){
+                        if(board.board[i][start.second] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            else if(abs(start.first - end.first) == abs(start.second - end.second)){
+                if(start.first < end.first && start.second < end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first + i][start.second + i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                if(start.first < end.first && start.second > end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first + i][start.second - i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                if(start.first > end.first && start.second < end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first - i][start.second + i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                if(start.first > end.first && start.second > end.second){
+                    for(int i = 1;i<abs(start.first - end.first);i++){
+                        if(board.board[start.first - i][start.second - i] != ' '){
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
 
-            if(piece == 'Q' && turn == "white" || piece == 'q' && turn == "black"){
-                if(start.first == end.first || start.second == end.second){
-                    return true;
-                }
-                if(abs(start.first - end.first) == abs(start.second - end.second)){
-                    return true;
-                }
+        bool isValidMove(string move){
+            if(move.length() != 4){
+                return false;
+            }
+            pair<int,int> start = getCoordinates(move.substr(0,2));
+            pair<int,int> end = getCoordinates(move.substr(2,2));
+            if(start.first < 0 || start.first > 7 || start.second < 0 || start.second > 7){
+                return false;
+            }
+            if(end.first < 0 || end.first > 7 || end.second < 0 || end.second > 7){
+                return false;
+            }
+            if(board.board[start.first][start.second] == ' '){
+                return false;
+            }
+            char piece = board.board[start.first][start.second];
+            if(islower(piece) && turn == "white" || isupper(piece) && turn == "black"){
+                return false;
+            }
+            if(piece == 'p' || piece == 'P'){
+                return checkPawn(start,end,piece);
             }
 
-            if(piece == 'K' && turn == "white" || piece == 'k' && turn == "black"){
+            else if(piece == 'r' || piece == 'R'){
+                return checkRook(start,end,piece);
+            }
+
+            else if(piece == 'N' && turn == "white" || piece == 'n' && turn == "black"){
+                return checkKnight(start,end,piece);
+            }
+
+            else if(piece == 'B'|| piece == 'b'){
+                return checkBishop(start,end,piece);
+            }
+
+            else if(piece == 'Q'|| piece == 'q'){
+                return checkQueen(start,end,piece);
+            }
+
+            else if(piece == 'K' && turn == "white" || piece == 'k' && turn == "black"){
                 if(abs(start.first - end.first) <= 1 && abs(start.second - end.second) <= 1){
                     return true;
                 }
