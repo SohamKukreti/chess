@@ -56,6 +56,8 @@ class ChessBoard{
 class Game{
     public:
         string turn;
+        vector <char> whiteCapturedPieces;
+        vector <char> blackCapturedPieces;
         Game(){
             ChessBoard board;
             turn = "white";
@@ -93,7 +95,15 @@ class Game{
                     }
                 }
                 if(end.first == start.first + 1 && start.second == end.second){
+                    if(board.board[end.first][end.second] != ' '){
+                        return false;
+                    }
                     return true;
+                }
+                if(board.board[end.first][end.second] != ' '){
+                    if(abs(start.second - end.second) == 1 && end.first == start.first + 1){
+                        return true;
+                    }
                 }
             }
 
@@ -104,7 +114,15 @@ class Game{
                     }
                 }
                 if(end.first == start.first - 1 && start.second == end.second){
+                    if(board.board[end.first][end.second] != ' '){
+                        return false;
+                    }
                     return true;
+                }
+                if(board.board[end.first][end.second] != ' '){
+                    if(abs(start.second - end.second) == 1 && end.first == start.first - 1){
+                        return true;
+                    }
                 }
             }
 
@@ -165,8 +183,25 @@ class Game{
             pair <int,int> end = getCoordinates(move.substr(2,2));
             cout << "Start: " << start.first << " " << start.second << endl;
             cout << "End: " << end.first << " " << end.second << endl;
+            if(board.board[end.first][end.second] != ' '){
+                if(turn == "white"){
+                    cout << "White captured " << board.board[end.first][end.second] << endl;
+                    whiteCapturedPieces.push_back(board.board[end.first][end.second]);
+                }
+                else{
+                    cout << "Black captured " << board.board[end.first][end.second] << endl;
+                    blackCapturedPieces.push_back(board.board[end.first][end.second]);
+                }
+                
+            }
             board.board[end.first][end.second] = board.board[start.first][start.second];
-            board.board[start.first][start.second] = ' ';
+            board.board[start.first][start.second] = ' '; 
+            if(board.board[end.first][end.second] == 'P' && end.first == 7){
+                board.board[end.first][end.second] = 'Q';
+            }
+            if(board.board[end.first][end.second] == 'p' && end.first == 0){
+                board.board[end.first][end.second] = 'q';
+            }
             cout << "Move executed" << endl;
         }
 };
@@ -179,6 +214,19 @@ int main(){
     while(true){
         game.board.printBoard();
         cout << "Turn: " << game.turn << endl;
+        if(game.whiteCapturedPieces.size() > 0){
+            cout << "White captured pieces: ";
+            for(int i = 0;i<game.whiteCapturedPieces.size();i++){
+                cout << game.whiteCapturedPieces[i] << " ";
+            }
+        }
+        if(game.blackCapturedPieces.size() > 0){
+            cout << "Black captured pieces: ";
+            for(int i = 0;i<game.blackCapturedPieces.size();i++){
+                cout << game.blackCapturedPieces[i] << " ";
+            }
+        }
+        cout << endl;
         cout << "Enter a move: ";
         string move;
         cin >> move;
