@@ -90,7 +90,7 @@ class Game{
                     if(abs(start.second - end.second) == 1 && end.first == start.first + 1){
                         return true;
                     }
-                }
+                }   
             }
 
             if(piece == 'p'){
@@ -276,6 +276,31 @@ class Game{
             return false;
         }
 
+        bool checkKing(pair<int,int> start, pair<int,int> end, char piece){
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
+                }
+            }
+            if(abs(start.first - end.first) <= 1 && abs(start.second - end.second) <= 1){
+                return true;
+            }
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
+                }
+            }
+            return false;
+        }
+
         bool isValidMove(string move){
             if(move.length() != 4){
                 return false;
@@ -315,10 +340,8 @@ class Game{
                 return checkQueen(start,end,piece);
             }
 
-            else if(piece == 'K' && turn == "white" || piece == 'k' && turn == "black"){
-                if(abs(start.first - end.first) <= 1 && abs(start.second - end.second) <= 1){
-                    return true;
-                }
+            else if(piece == 'K'|| piece == 'k'){
+                return checkKing(start,end,piece);
             }
 
             return false;
