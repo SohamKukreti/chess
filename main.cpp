@@ -60,6 +60,7 @@ class Game{
         vector <char> blackCapturedPieces;
         vector <char> whitePieces = {'R','N','B','Q','K','P'};
         vector <char> blackPieces = {'r','n','b','q','k','p'};
+        bool safeSpace[8][8];
         Game(){
             ChessBoard board;
             turn = "white";
@@ -301,6 +302,125 @@ class Game{
             return false;
         }
 
+        bool checkCheck(string turn, char board[8][8]){
+            //check if king is under attack from any other pieces
+            pair<int,int> kingPosition;
+            for(int i = 0; i < 8; i++){
+                for(int j = 0; j < 8; j++){
+                    if(turn == "white" && board[i][j] == 'K'){
+                        kingPosition = make_pair(i,j);
+                    }
+                    if(turn == "black" && board[i][j] == 'k'){
+                        kingPosition = make_pair(i,j);
+                    }
+                }
+            }
+            for(int i = 0; i < 8; i++){
+                for(int j = 0; j < 8; j++){
+                    if(turn == "white"){
+                        if(board[i][j] == 'p'){
+                            if(checkPawn(make_pair(i,j),kingPosition,'p')){
+                                return true;
+                            }
+                            // if(i == kingPosition.first + 1 && abs(j - kingPosition.second) == 1){
+                            //     return true;
+                            // }
+                        }
+                        
+                         if(board[i][j] == 'r' || board[i][j] == 'q'){
+                            if(checkRook(make_pair(i,j),kingPosition,'r')){
+                                return true;
+                            }
+                            if(checkQueen(make_pair(i,j),kingPosition,'q')){
+                                return true;
+                            }
+                        //     if(i == kingPosition.first || j == kingPosition.second){
+                        //         return true;
+                        //     }
+                         }
+                       
+                         if(board[i][j] == 'n'){
+                             if(checkKnight(make_pair(i,j),kingPosition,'n')){
+                            return true;
+                        }
+                        //     if((abs(i - kingPosition.first) == 2 && abs(j - kingPosition.second) == 1) || (abs(i - kingPosition.first) == 1 && abs(j - kingPosition.second) == 2)){
+                        //         return true;
+                        //     }
+                         }
+                        
+                         if(board[i][j] == 'b' || board[i][j] == 'q'){
+                            if(checkBishop(make_pair(i,j),kingPosition,'b')){
+                                return true;
+                            }
+                            if(checkQueen(make_pair(i,j),kingPosition,'q')){
+                                return true;
+                            }
+                        //     if(abs(i - kingPosition.first) == abs(j - kingPosition.second)){
+                        //         return true;
+                        //     }
+                         }
+                         if(board[i][j] == 'k'){
+                            if(checkKing(make_pair(i,j),kingPosition,'k')){
+                            return true;
+                        }
+                        //     if(abs(i - kingPosition.first) <= 1 && abs(j - kingPosition.second) <= 1){
+                        //         return true;
+                        //     }
+                         }
+                    }
+                    if(turn == "black"){
+                        if(board[i][j] == 'P'){
+                            if(checkPawn(make_pair(i,j),kingPosition,'P')){
+                                return true;
+                            }
+                            // if(i == kingPosition.first - 1 && abs(j - kingPosition.second) == 1){
+                            //     return true;
+                            // }
+                        }
+                        if(board[i][j] == 'R' || board[i][j] == 'Q'){
+                            if(checkRook(make_pair(i,j),kingPosition,'R')){
+                                return true;
+                            }
+                            if(checkQueen(make_pair(i,j),kingPosition,'Q')){
+                                return true;
+                            }
+                            // if(i == kingPosition.first || j == kingPosition.second){
+                            //     return true;
+                            // }
+                        }
+                        if(board[i][j] == 'N'){
+                            if(checkKnight(make_pair(i,j),kingPosition,'N')){
+                                return true;
+                            }
+                            // if((abs(i - kingPosition.first) == 2 && abs(j - kingPosition.second) == 1) || (abs(i - kingPosition.first) == 1 && abs(j - kingPosition.second) == 2)){
+                            //     return true;
+                            // }
+                        }
+                        if(board[i][j] == 'B' || board[i][j] == 'Q'){
+                            if(checkBishop(make_pair(i,j),kingPosition,'B')){
+                                return true;
+                            }
+                            if(checkQueen(make_pair(i,j),kingPosition,'Q')){
+                                return true;
+                            }
+                            // if(abs(i - kingPosition.first) == abs(j - kingPosition.second)){
+                            //     return true;
+                            // }
+                        }
+                        if(board[i][j] == 'K'){
+                            if(checkKing(make_pair(i,j),kingPosition,'K')){
+                                return true;
+                            }
+                            // if(abs(i - kingPosition.first) <= 1 && abs(j - kingPosition.second) <= 1){
+                            //     return true;
+                            // }
+                        }
+                    }
+                }   
+            }
+            return false;
+        }
+
         bool isValidMove(string move){
             if(move.length() != 4){
                 return false;
@@ -320,6 +440,25 @@ class Game{
             if(islower(piece) && turn == "white" || isupper(piece) && turn == "black"){
                 return false;
             }
+            if(checkCheck(turn, board.board)){
+                cout << "King is under check!" << endl;
+                executeMove(move);
+                string reverseMove = "";
+                reverseMove += move[2];
+                reverseMove += move[3];
+                reverseMove += move[0];
+                reverseMove += move[1];
+                if(checkCheck(turn, board.board)){
+                    cout << "Invalid move, king is still under check" << endl;
+                    executeMove(reverseMove);
+                    return false;
+                }
+                executeMove(reverseMove);
+                return true;
+            }
+
+
+            
             if(piece == 'p' || piece == 'P'){
                 return checkPawn(start,end,piece);
             }
@@ -366,8 +505,8 @@ class Game{
         void executeMove(string move){
             pair <int,int> start = getCoordinates(move.substr(0,2));
             pair <int,int> end = getCoordinates(move.substr(2,2));
-            cout << "Start: " << start.first << " " << start.second << endl;
-            cout << "End: " << end.first << " " << end.second << endl;
+            //cout << "Start: " << start.first << " " << start.second << endl;
+            //cout << "End: " << end.first << " " << end.second << endl;
             if(board.board[end.first][end.second] != ' '){
                 if(turn == "white"){
                     cout << "White captured " << board.board[end.first][end.second] << endl;
@@ -387,7 +526,7 @@ class Game{
             if(board.board[end.first][end.second] == 'p' && end.first == 0){
                 board.board[end.first][end.second] = 'q';
             }
-            cout << "Move executed" << endl;
+            //cout << "Move executed" << endl;
         }
 };
 
@@ -412,9 +551,16 @@ int main(){
             }
         }
         cout << endl;
-        cout << "Enter a move: ";
         string move;
-        cin >> move;
+        if(game.turn == "white"){
+            cout << "Enter a move: ";
+            cin >> move;
+        }
+        else if(game.turn == "black"){
+            cout << "Enter a move : ";
+            cin >> move;
+        }
+        
         if(move != "exit"){
             game.makeMove(move);
         }
