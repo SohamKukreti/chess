@@ -70,11 +70,20 @@ class Game{
         pair<int,int> getCoordinates(string move){
             int row = move[1] - '1';
             int col = move[0] - 'a';
-            cout << row << " " << col << endl;
+            //cout << row << " " << col << endl;
             return make_pair(row,col);
         }
 
         bool checkPawn(pair<int,int> start, pair<int,int> end, char piece){
+            if(board.board[end.first][end.second] != ' '){
+                if(islower(piece) && islower(board.board[end.first][end.second])){
+                    return false;
+                }
+
+                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
+                    return false;
+                }
+            }
             if(piece == 'P'){
                 if(start.first == 1){
                     if(end.first == 3 && start.second == end.second){
@@ -281,23 +290,13 @@ class Game{
             if(board.board[end.first][end.second] != ' '){
                 if(islower(piece) && islower(board.board[end.first][end.second])){
                     return false;
-                }
-
+                }   
                 else if(isupper(piece) && isupper(board.board[end.first][end.second])){
                     return false;
                 }
             }
-            if(abs(start.first - end.first) <= 1 && abs(start.second - end.second) <= 1){
+            else if(abs(start.first - end.first) <= 1 && abs(start.second - end.second) <= 1){
                 return true;
-            }
-            if(board.board[end.first][end.second] != ' '){
-                if(islower(piece) && islower(board.board[end.first][end.second])){
-                    return false;
-                }
-
-                else if(isupper(piece) && isupper(board.board[end.first][end.second])){
-                    return false;
-                }
             }
             return false;
         }
@@ -442,6 +441,12 @@ class Game{
             }
             if(checkCheck(turn, board.board)){
                 cout << "King is under check!" << endl;
+                int tempBoard[8][8];
+                for(int i = 0; i < 8; i++){
+                    for(int j = 0; j < 8; j++){
+                        tempBoard[i][j] = board.board[i][j];
+                    }
+                }
                 executeMove(move);
                 string reverseMove = "";
                 reverseMove += move[2];
@@ -450,10 +455,19 @@ class Game{
                 reverseMove += move[1];
                 if(checkCheck(turn, board.board)){
                     cout << "Invalid move, king is still under check" << endl;
-                    executeMove(reverseMove);
+                    for(int i = 0; i < 8; i++){
+                        for(int j = 0; j < 8; j++){
+                            board.board[i][j] = tempBoard[i][j];
+                        }
+                    }
                     return false;
                 }
-                executeMove(reverseMove);
+                for(int i = 0; i < 8; i++){
+                        for(int j = 0; j < 8; j++){
+                            board.board[i][j] = tempBoard[i][j];
+                        }
+                    }
+                //executeMove(reverseMove);
                 return true;
             }
 
@@ -528,6 +542,22 @@ class Game{
             }
             //cout << "Move executed" << endl;
         }
+
+        void undoMove(string move){
+            pair <int,int> start = getCoordinates(move.substr(0,2));
+            pair <int,int> end = getCoordinates(move.substr(2,2));
+            board.board[start.first][start.second] = board.board[end.first][end.second];
+            board.board[end.first][end.second] = ' ';
+            if(turn == "white"){
+                turn = "black";
+            }
+            else{
+                turn = "white";
+            }
+        }
+   
+
+
 };
 
 int main(){
@@ -535,6 +565,8 @@ int main(){
     cout << endl << "Move format: original position to new position (e.g. a2a4)" << endl << endl;
     cout << "Enter 'exit' to exit the game" << endl << endl;
     cout << "Uppercase letters represent white pieces and lowercase letters represent black pieces" << endl << endl;
+    string move[2];
+    move[0] = "";
     while(true){
         game.board.printBoard();
         cout << "Turn: " << game.turn << endl;
@@ -551,22 +583,28 @@ int main(){
             }
         }
         cout << endl;
-        string move;
         if(game.turn == "white"){
             cout << "Enter a move: ";
-            cin >> move;
+            cin >> move[1];
         }
         else if(game.turn == "black"){
-            cout << "Enter a move : ";
-            cin >> move;
+            cout << "Enter a move: ";
+            cin >> move[1];
         }
         
-        if(move != "exit"){
-            game.makeMove(move);
+        if(move[1] == "undo"){
+            game.undoMove(move[0]);
         }
-        if(move == "exit"){
+
+        if(move[1] == "exit"){
             break;
         }
+
+        else if(move[1] != "exit"){
+            game.makeMove(move[1]);
+            move[0] = move[1];
+        }
+        
     }
     return 0;
 }
